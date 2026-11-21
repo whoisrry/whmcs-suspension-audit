@@ -138,7 +138,8 @@ function serviceSuspensionAudit_fetch(int $days, bool $showFree, bool $showOneti
 }
 
 /**
- * Ambil invoice yang terkait service (tblinvoiceitems type 'Hosting').
+ * Ambil invoice yang terkait service (tblinvoiceitems type 'Hosting', relid = tblhosting.id,
+ * dan tblinvoices.userid = tblhosting.userid).
  * Hasil per service: 'unpaid' = invoice belum lunas, 'latest' = invoice terbaru (fallback).
  *
  * @param int[] $serviceIds
@@ -157,6 +158,9 @@ function serviceSuspensionAudit_fetchInvoices(array $serviceIds): array
     foreach (array_chunk(array_keys($map), 500) as $chunk) {
         $items = Capsule::table('tblinvoiceitems as ii')
             ->join('tblinvoices as i', 'i.id', '=', 'ii.invoiceid')
+            ->join('tblhosting as h', 'h.id', '=', 'ii.relid')
+            // Invoice harus milik client yang sama dengan service (antisipasi service yang pernah dipindah client).
+            ->whereColumn('i.userid', 'h.userid')
             ->where('ii.type', 'Hosting')
             ->whereIn('ii.relid', $chunk)
             ->select(['ii.relid', 'i.id', 'i.status', 'i.duedate'])

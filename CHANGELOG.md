@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+- Invoice di kolom Invoice kini wajib milik client yang sama dengan service (`tblinvoices.userid = tblhosting.userid`), agar invoice lama dari service yang pernah dipindah client tidak ikut tampil.
+
 ## [1.0.0] - 2026-11-21
 
 ### Added

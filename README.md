@@ -34,7 +34,7 @@ Jika penulisan `billingcycle` di `tblhosting` berbeda, sesuaikan konstanta `SSA_
 
 - **ID**: nomor service, bisa diklik untuk membuka `clientsservices.php` (tab baru).
 - **Client**: link ke `clientssummary.php`.
-- **Invoice**: invoice yang terkait service (item `tblinvoiceitems` bertipe `Hosting`). Invoice belum lunas (`Unpaid`, `Payment Pending`, `Collections`) ditampilkan semua dengan due date-nya. Jika tidak ada, ditampilkan invoice terakhir sebagai `Terakhir: #ID (Status)`. Semua invoice bisa diklik ke `invoices.php?action=edit`.
+- **Invoice**: invoice yang terkait service (item `tblinvoiceitems` bertipe `Hosting` dengan `relid` = ID service, dan invoice milik client yang sama dengan service). Invoice addon, domain, upgrade, dan item manual tanpa relasi ke service tidak ditampilkan. Invoice belum lunas (`Unpaid`, `Payment Pending`, `Collections`) ditampilkan semua dengan due date-nya. Jika tidak ada, ditampilkan invoice terakhir sebagai `Terakhir: #ID (Status)`. Semua invoice bisa diklik ke `invoices.php?action=edit`.
 
 ## Catatan
 
