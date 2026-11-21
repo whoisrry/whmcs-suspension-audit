@@ -18,8 +18,9 @@ use WHMCS\Database\Capsule;
 const SSA_VERSION = '1.0.0';
 const SSA_DEFAULT_DAYS = 7;
 const SSA_MAX_DAYS = 365;
-const SSA_CYCLES_FREE = ['Free Account', 'Free'];
-const SSA_CYCLES_ONETIME = ['One Time', 'Onetime'];
+// Ditulis lowercase; dicocokkan terhadap LOWER(TRIM(billingcycle)).
+const SSA_CYCLES_FREE = ['free account', 'free'];
+const SSA_CYCLES_ONETIME = ['one time', 'onetime', 'one-time'];
 const SSA_INVOICE_UNPAID = ['Unpaid', 'Payment Pending', 'Collections'];
 
 function serviceSuspensionAudit_config(): array
@@ -74,9 +75,22 @@ function serviceSuspensionAudit_settings(array $vars): array
 
     return [
         'days' => max(0, min(SSA_MAX_DAYS, $days)),
-        'showFree' => ($vars['show_free'] ?? '') === 'on',
-        'showOnetime' => ($vars['show_onetime'] ?? '') === 'on',
+        'showFree' => serviceSuspensionAudit_isChecked($vars['show_free'] ?? ''),
+        'showOnetime' => serviceSuspensionAudit_isChecked($vars['show_onetime'] ?? ''),
     ];
+}
+
+/**
+ * Nilai checkbox (yesno) WHMCS umumnya 'on', tapi terima juga varian lain.
+ */
+function serviceSuspensionAudit_isChecked($value): bool
+{
+    return in_array(strtolower(trim((string) $value)), ['on', 'yes', '1', 'true'], true);
+}
+
+function serviceSuspensionAudit_normalizeCycle($cycle): string
+{
+    return strtolower(trim((string) $cycle));
 }
 
 /**
@@ -88,22 +102,24 @@ function serviceSuspensionAudit_fetch(int $days, bool $showFree, bool $showOneti
     $limitDate = date('Y-m-d', strtotime($today . ' +' . $days . ' days'));
     $noDueCycles = array_merge(SSA_CYCLES_FREE, SSA_CYCLES_ONETIME);
 
+    $cycleCol = Capsule::raw('LOWER(TRIM(h.billingcycle))');
+
     $query = Capsule::table('tblhosting as h')
         ->join('tblclients as c', 'c.id', '=', 'h.userid')
         ->leftJoin('tblproducts as p', 'p.id', '=', 'h.packageid')
         ->where('h.domainstatus', 'Active')
-        ->where(function ($q) use ($noDueCycles, $limitDate, $showFree, $showOnetime) {
-            $q->where(function ($recurring) use ($noDueCycles, $limitDate) {
-                $recurring->whereNotIn('h.billingcycle', $noDueCycles)
+        ->where(function ($q) use ($cycleCol, $noDueCycles, $limitDate, $showFree, $showOnetime) {
+            $q->where(function ($recurring) use ($cycleCol, $noDueCycles, $limitDate) {
+                $recurring->whereNotIn($cycleCol, $noDueCycles)
                     ->whereNotNull('h.nextduedate')
                     ->where('h.nextduedate', '>', '0000-00-00')
                     ->where('h.nextduedate', '<=', $limitDate);
             });
             if ($showFree) {
-                $q->orWhereIn('h.billingcycle', SSA_CYCLES_FREE);
+                $q->orWhereIn($cycleCol, SSA_CYCLES_FREE);
             }
             if ($showOnetime) {
-                $q->orWhereIn('h.billingcycle', SSA_CYCLES_ONETIME);
+                $q->orWhereIn($cycleCol, SSA_CYCLES_ONETIME);
             }
         })
         ->select([
@@ -117,7 +133,7 @@ function serviceSuspensionAudit_fetch(int $days, bool $showFree, bool $showOneti
     $rows = [];
     foreach ($query->get() as $row) {
         $row = (array) $row;
-        $isNoDue = in_array($row['billingcycle'], $noDueCycles, true);
+        $isNoDue = in_array(serviceSuspensionAudit_normalizeCycle($row['billingcycle']), $noDueCycles, true);
         $due = $isNoDue ? null : substr((string) $row['nextduedate'], 0, 10);
 
         if ($isNoDue) {

@@ -25,10 +25,10 @@ Modul hanya memakai API yang stabil di kedua versi WHMCS: `WHMCS\Database\Capsul
 ## Aturan Filter
 
 - Billing cycle berulang: `Active` dan `nextduedate <= hari ini + Reminder Days`. Baris yang sudah lewat due date diberi warna merah muda.
-- `Free Account` (juga `Free`) dan `One Time` (juga `Onetime`): tampil hanya bila opsinya aktif, dengan due date `-` dan status `Tanpa due date`.
+- `Free Account` (juga `Free`) dan `One Time` (juga `Onetime`, `One-Time`), dicocokkan tanpa memedulikan huruf besar-kecil dan spasi di awal/akhir,: tampil hanya bila opsinya aktif, dengan due date `-` dan status `Tanpa due date`.
 - Service berulang dengan `nextduedate` kosong/`0000-00-00` tidak ditampilkan.
 
-Jika penulisan `billingcycle` di `tblhosting` berbeda, sesuaikan konstanta `SSA_CYCLES_FREE` / `SSA_CYCLES_ONETIME`. Cek dengan `SELECT DISTINCT billingcycle FROM tblhosting;`.
+Jika penulisan `billingcycle` di `tblhosting` berbeda, tambahkan ke konstanta `SSA_CYCLES_FREE` / `SSA_CYCLES_ONETIME` (ditulis lowercase). Cek dengan `SELECT DISTINCT billingcycle FROM tblhosting;`.
 
 ## Kolom Tabel
 

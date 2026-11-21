@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Fixed
+- Service Free Account / One Time tidak muncul jika penulisan `billingcycle` berbeda huruf besar-kecil atau ada spasi; pencocokan kini case-insensitive dan di-trim (varian: `Free`, `Onetime`, `One-Time`).
+- Checkbox Show Free / Show One Time kini menerima nilai `on`, `yes`, `1`, `true`.
 - Invoice di kolom Invoice kini wajib milik client yang sama dengan service (`tblinvoices.userid = tblhosting.userid`), agar invoice lama dari service yang pernah dipindah client tidak ikut tampil.
 
 ## [1.0.0] - 2026-11-21
